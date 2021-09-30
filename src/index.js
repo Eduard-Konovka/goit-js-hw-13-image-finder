@@ -47,9 +47,9 @@ loadMoreBtn.refs.button.addEventListener('click', onLoadMore)
 export function onSearch(e) {
   refs.imagesContainer.innerHTML = ''
   imagesApiService.resetPage()
-  imagesApiService.query = e.target.value
+  imagesApiService.query = e.target.value.trim()
 
-  if (imagesApiService.query === ' ') {
+  if (imagesApiService.searchQuery.length < 1) {
     refs.imagesContainer.innerHTML = ''
     loadMoreBtn.hide()
     info({ text: 'Too many matches found. Please enter a more specific query!' })
