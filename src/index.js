@@ -53,7 +53,6 @@ export function onSearch(e) {
     refs.imagesContainer.innerHTML = ''
     loadMoreBtn.hide()
     info({ text: 'Too many matches found. Please enter a more specific query!' })
-    e.target.value = ''
     return
   }
 
