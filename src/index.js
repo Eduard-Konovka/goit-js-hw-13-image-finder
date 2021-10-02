@@ -29,7 +29,9 @@ defaults.delay = '3000'
 const debounce = require('lodash.debounce')
 
 // --- Подключение плагина лайтбокса basicLightbox ---
-// const basicLightbox = require('basiclightbox') // import * as basicLightbox from 'basiclightbox'
+const basicLightbox = require('basiclightbox')
+// import * as basicLightbox from 'basiclightbox'
+// import { create } from 'basiclightbox'
 
 // --- Создание объекта-экземпляра класса отвечающего за логику HTTP-запросов к API ---
 // const imagesApiService = new ImagesApiService()
@@ -59,14 +61,19 @@ export function onSearch(e) {
 
   loadMoreBtn.show()
   loadMoreBtn.disable()
-  imagesApiService.fetchArticles().then(createGalleryImages).catch(onFetchError)
+  imagesApiService.fetchArticles().then(createGalleryImages).then(updateBasicLightbox.create()).catch(onFetchError)
   e.target.value = ''
 }
 
 export function onLoadMore(e) {
   imagesApiService.incrementPage()
   loadMoreBtn.disable()
-  imagesApiService.fetchArticles().then(createGalleryImages).catch(onFetchError)
+  imagesApiService
+    .fetchArticles()
+    .then(updateBasicLightbox.remove())
+    .then(createGalleryImages)
+    .then(updateBasicLightbox.create())
+    .catch(onFetchError)
 }
 
 function createGalleryImages(images) {
@@ -85,6 +92,33 @@ function createGalleryImages(images) {
     block: 'center',
   })
   success({ text: 'Upload successful!' })
+}
+
+function getLargerImageLink(targetImage) {
+  const instance = basicLightbox.create(`
+    <img src="${targetImage.attributes.url.value}" alt="${targetImage.alt}">
+  `)
+  instance.show()
+}
+
+const updateBasicLightbox = {
+  handleNavClick(e) {
+    e.preventDefault()
+
+    const target = e.target
+
+    if (target.nodeName !== 'IMG') return
+
+    getLargerImageLink(target)
+  },
+
+  create() {
+    refs.imagesContainer.addEventListener('click', this.handleNavClick)
+  },
+
+  remove() {
+    refs.imagesContainer.removeEventListener('click', this.handleNavClick)
+  },
 }
 
 function onFetchError(err) {
