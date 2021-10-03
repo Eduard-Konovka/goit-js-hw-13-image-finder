@@ -1,3 +1,6 @@
+// --- Импорт настроек ---
+import settingsURL from './js/settings'
+
 // --- Импорт шаблона ---
 import imageCardTpl from './templates/imageCardTpl.hbs'
 
@@ -53,15 +56,20 @@ export function onSearch(e) {
 
   if (imagesApiService.searchQuery.length < 1) {
     refs.imagesContainer.innerHTML = ''
-    loadMoreBtn.hide()
-    info({ text: 'Too many matches found. Please enter a more specific query!' })
     e.target.value = ''
-    return
+    throw info({ text: 'Too many matches found. Please enter a more specific query!' })
   }
 
   loadMoreBtn.show()
   loadMoreBtn.disable()
-  imagesApiService.fetchArticles().then(createGalleryImages).then(updateBasicLightbox.create()).catch(onFetchError)
+  imagesApiService
+    .fetchArticles()
+    // .then(checksServerErrors)
+    .then(checksNumberOfImages)
+    .then(checksQuantityOnPage)
+    .then(createGalleryImages)
+    .then(updateBasicLightbox.create())
+    .catch(onFetchError)
   e.target.value = ''
 }
 
@@ -71,27 +79,11 @@ export function onLoadMore(e) {
   imagesApiService
     .fetchArticles()
     .then(updateBasicLightbox.remove())
+    // .then(checksServerErrors)
+    .then(checksQuantityOnTotalHits)
     .then(createGalleryImages)
     .then(updateBasicLightbox.create())
     .catch(onFetchError)
-}
-
-function createGalleryImages(images) {
-  if (images.total === 0) {
-    refs.imagesContainer.innerHTML = ''
-    loadMoreBtn.hide()
-    alert({ text: 'Check the correctness of the entered data, images of this category do not exist!' })
-    return
-  }
-
-  refs.imagesContainer.insertAdjacentHTML('beforeend', imageCardTpl(images))
-  refs.imagesContainer.lastElementChild.setAttribute('id', imagesApiService.page)
-  loadMoreBtn.enable()
-  loadMoreBtn.refs.button.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center',
-  })
-  success({ text: 'Upload successful!' })
 }
 
 function getLargerImageLink(targetImage) {
@@ -121,8 +113,56 @@ const updateBasicLightbox = {
   },
 }
 
-function onFetchError(err) {
-  refs.imagesContainer.innerHTML = ''
+// function checksServerErrors(images) {
+//   console.log('images.status: ', images.status)
+//   console.log('images.total: ', images.total)
+//   if (images.status > 500) {
+//     refs.imagesContainer.innerHTML = ''
+//     console.log('images.status: ', images.status)
+//     throw error({ text: 'Server error \n Please try again later' })
+//   }
+
+//   return images
+// }
+
+function checksNumberOfImages(images) {
+  if (images.total === 0) {
+    refs.imagesContainer.innerHTML = ''
+    throw alert({ text: 'Check the correctness of the entered data, images of this category do not exist!' })
+  }
+
+  return images
+}
+
+function checksQuantityOnPage(images) {
+  if (images.hits.length === settingsURL.QUANTITY_PER_PAGE) {
+    return images
+  }
+
+  refs.imagesContainer.insertAdjacentHTML('beforeend', imageCardTpl(images))
   loadMoreBtn.hide()
-  error({ text: 'Server error \n Please try again later' })
+  throw success({ text: 'Upload successful!' })
+}
+
+function checksQuantityOnTotalHits(images) {
+  const totalHits = settingsURL.QUANTITY_PER_PAGE * Math.floor(images.totalHits / settingsURL.QUANTITY_PER_PAGE)
+  if (refs.imagesContainer.children.length < totalHits) {
+    return images
+  }
+
+  refs.imagesContainer.insertAdjacentHTML('beforeend', imageCardTpl(images))
+  throw notice({ text: 'No more images!' })
+}
+
+function createGalleryImages(images) {
+  refs.imagesContainer.insertAdjacentHTML('beforeend', imageCardTpl(images))
+  loadMoreBtn.enable()
+  loadMoreBtn.refs.button.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  })
+}
+
+function onFetchError(err) {
+  loadMoreBtn.hide()
 }
