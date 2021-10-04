@@ -64,7 +64,6 @@ export function onSearch(e) {
   loadMoreBtn.disable()
   imagesApiService
     .fetchArticles()
-    // .then(checksServerErrors)
     .then(checksNumberOfImages)
     .then(checksQuantityOnPage)
     .then(createGalleryImages)
@@ -79,7 +78,6 @@ export function onLoadMore(e) {
   imagesApiService
     .fetchArticles()
     .then(updateBasicLightbox.remove())
-    // .then(checksServerErrors)
     .then(checksQuantityOnTotalHits)
     .then(createGalleryImages)
     .then(updateBasicLightbox.create())
@@ -113,22 +111,10 @@ const updateBasicLightbox = {
   },
 }
 
-// function checksServerErrors(images) {
-//   console.log('images.status: ', images.status)
-//   console.log('images.total: ', images.total)
-//   if (images.status > 500) {
-//     refs.imagesContainer.innerHTML = ''
-//     console.log('images.status: ', images.status)
-//     throw error({ text: 'Server error \n Please try again later' })
-//   }
-
-//   return images
-// }
-
 function checksNumberOfImages(images) {
   if (images.total === 0) {
     refs.imagesContainer.innerHTML = ''
-    throw alert({ text: 'Check the correctness of the entered data, images of this category do not exist!' })
+    throw 'Check the correctness of the entered data, images of this category do not exist!'
   }
 
   return images
@@ -141,7 +127,7 @@ function checksQuantityOnPage(images) {
 
   refs.imagesContainer.insertAdjacentHTML('beforeend', imageCardTpl(images))
   loadMoreBtn.hide()
-  throw success({ text: 'Upload successful!' })
+  throw 'Upload successful!'
 }
 
 function checksQuantityOnTotalHits(images) {
@@ -151,7 +137,7 @@ function checksQuantityOnTotalHits(images) {
   }
 
   refs.imagesContainer.insertAdjacentHTML('beforeend', imageCardTpl(images))
-  throw notice({ text: 'No more images!' })
+  throw 'No more images!'
 }
 
 function createGalleryImages(images) {
@@ -165,4 +151,14 @@ function createGalleryImages(images) {
 
 function onFetchError(err) {
   loadMoreBtn.hide()
+
+  if (message === 'Check the correctness of the entered data, images of this category do not exist!') {
+    alert({ text: message })
+  } else if (message === 'No more images!') {
+    notice({ text: message })
+  } else if (message === 'Upload successful!') {
+    success({ text: message })
+  } else {
+    error({ text: 'Server error \n Please try again later' })
+  }
 }
