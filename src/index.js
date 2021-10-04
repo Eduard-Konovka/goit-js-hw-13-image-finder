@@ -53,6 +53,36 @@ export const loadMoreBtn = new LoadMoreBtn({
 refs.searchForm.addEventListener('input', debounce(onSearch, 1000))
 loadMoreBtn.refs.button.addEventListener('click', onLoadMore)
 
+// --- Функции рендеринга лайтбокса basicLightbox ---
+function getLargerImageLink(targetImage) {
+  const instance = basicLightbox.create(`
+    <img src="${targetImage.dataset.url}" alt="${targetImage.alt}">
+  `)
+  instance.show()
+}
+
+const updateBasicLightbox = {
+  handleNavClick(e) {
+    e.preventDefault()
+
+    const target = e.target
+
+    if (target.nodeName !== 'IMG') return
+
+    getLargerImageLink(target)
+  },
+
+  create() {
+    refs.imagesContainer.addEventListener('click', this.handleNavClick)
+  },
+
+  remove() {
+    refs.imagesContainer.removeEventListener('click', this.handleNavClick)
+  },
+}
+
+// --- Функции рендеринга изображений ---
+
 export function onSearch(e) {
   refs.imagesContainer.innerHTML = ''
   imagesApiService.resetPage()
@@ -88,33 +118,6 @@ export function onLoadMore(e) {
     .then(createGalleryImages)
     .then(updateBasicLightbox.create())
     .catch(onFetchError)
-}
-
-function getLargerImageLink(targetImage) {
-  const instance = basicLightbox.create(`
-    <img src="${targetImage.attributes.url.value}" alt="${targetImage.alt}">
-  `)
-  instance.show()
-}
-
-const updateBasicLightbox = {
-  handleNavClick(e) {
-    e.preventDefault()
-
-    const target = e.target
-
-    if (target.nodeName !== 'IMG') return
-
-    getLargerImageLink(target)
-  },
-
-  create() {
-    refs.imagesContainer.addEventListener('click', this.handleNavClick)
-  },
-
-  remove() {
-    refs.imagesContainer.removeEventListener('click', this.handleNavClick)
-  },
 }
 
 function checksNumberOfImages(images) {
