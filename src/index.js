@@ -1,3 +1,6 @@
+// --- Импорт стилей ---
+import './sass/styles.css'
+
 // --- Импорт настроек ---
 import settingsURL from './js/settings'
 
@@ -32,8 +35,9 @@ defaults.delay = '3000'
 const debounce = require('lodash.debounce')
 
 // --- Подключение плагина лайтбокса basicLightbox ---
-const basicLightbox = require('basiclightbox')
-// import * as basicLightbox from 'basiclightbox'
+import 'basiclightbox/dist/basicLightbox.min.css'
+import * as basicLightbox from 'basiclightbox'
+// const basicLightbox = require('basiclightbox')
 // import { create } from 'basiclightbox'
 
 // --- Создание объекта-экземпляра класса отвечающего за логику HTTP-запросов к API ---
@@ -57,7 +61,9 @@ export function onSearch(e) {
   if (imagesApiService.searchQuery.length < 1) {
     refs.imagesContainer.innerHTML = ''
     e.target.value = ''
-    throw info({ text: 'Too many matches found. Please enter a more specific query!' })
+    info({ text: 'Too many matches found. Please enter a more specific query!' })
+    e.target.value = ''
+    return
   }
 
   loadMoreBtn.show()
@@ -149,7 +155,7 @@ function createGalleryImages(images) {
   })
 }
 
-function onFetchError(err) {
+function onFetchError(message) {
   loadMoreBtn.hide()
 
   if (message === 'Check the correctness of the entered data, images of this category do not exist!') {
