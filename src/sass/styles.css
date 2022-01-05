@@ -15,7 +15,7 @@ body {
   padding-top: 80px;
   background-image: url('../images/phones-tablet-2.png');
   background-size: auto calc(100vh - 80px);
-  background-position: center 80px;
+  background-position: center 90px;
   background-repeat: no-repeat;
 }
 
@@ -43,6 +43,15 @@ img {
   justify-content: center;
   padding: 20px;
   margin-bottom: 24px;
+
+  background-image: url('../images/logo.svg');
+  background-size: 250px auto;
+  background-position: 32px center;
+  background-repeat: no-repeat;
+}
+
+.search-input {
+  width: calc(100vw * 0.3);
 }
 
 .button {
